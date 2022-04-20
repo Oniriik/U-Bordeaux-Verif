@@ -1,6 +1,7 @@
 # U-Bordeaux-Verif
-    # OniriiK#2908
-    # https://github.com/Oniriik
+    Contact : 
+    OniriiK#2908
+    https://github.com/Oniriik
 
 # LANG - FR
 

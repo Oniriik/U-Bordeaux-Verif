@@ -1,0 +1,24 @@
+{
+  "name": "UBVerif",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@discordjs/builders": "^0.6.0",
+    "@discordjs/rest": "^0.1.0-canary.0",
+    "@keyv/sqlite": "^2.0.2",
+    "discord-api-types": "^0.23.1",
+    "discord.js": "^13.2.0",
+    "keyv": "^4.0.3",
+    "nodemailer": "^6.7.3",
+    "webpack": "^5.58.1",
+    "xmlhttprequest": "^1.8.0"
+  }
+}
