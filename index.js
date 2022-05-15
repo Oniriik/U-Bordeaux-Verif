@@ -5,6 +5,7 @@ const nodemailer = require("nodemailer");
 const { Routes } = require('discord-api-types/v9');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const Discord = require('discord.js')
+const { MessageAttachment } = require('discord.js')
 const client = new Discord.Client({
   intents: [
     Discord.Intents.FLAGS.GUILD_MESSAGES,
@@ -19,12 +20,11 @@ const discord_email = new Keyv(CONFIG.DATABASE_URL, { namespace: 'discord_email'
 const code_email_temp = new Keyv(CONFIG.DATABASE_URL, { namespace: 'code_email_temp' })
 const code_discord_temp = new Keyv(CONFIG.DATABASE_URL, { namespace: 'code_discord_temp' })
 const ALPHANUM = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-
 code_discord_temp.clear()
 code_email_temp.clear()
 
 client.login(CONFIG.DISCORD_LOGIN_API_TOKEN).then(console.log('// LOGGED'))
-client.once('ready', () => console.log('// RUN'))
+client.once('ready', () => console.log('//RUN'))
 
 // SETUP / COMMANDS FOR DISCORD
 const rest = new REST({ version: '9' }).setToken(CONFIG.DISCORD_LOGIN_API_TOKEN);
@@ -42,7 +42,7 @@ rest.put(
         ).toJSON(),
       new SlashCommandBuilder()
         .setName('code')
-        .setDescription('Confirme ton email en utilisant le code recu par email.')
+        .setDescription('Confirme ton email en utilisant le code recu par e-mail.')
         .addStringOption(option =>
           option.setName('code')
             .setDescription('Le code que tu as recu par email.')
@@ -55,7 +55,7 @@ rest.put(
 
 
 client.on('interactionCreate', async interaction => {
-  if (!interaction.isCommand()) return;
+  if (!interaction.isCommand() || interaction.channel.id != CONFIG.WELCOME_CHANNEL_ID)return;
   const MESSAGE_PREFIX = "<@"+interaction.member.id+">"
   // IF USER USE /VERIF COMMAND
   if (interaction.commandName === 'verif') {
@@ -95,19 +95,35 @@ client.on('interactionCreate', async interaction => {
           to: email_address, 
           subject: CONFIG.EMAIL_SUBJECT, 
           text: CONFIG.EMAIL_MSG + code,
-        }).then(
-              // REPLY WITH  EMAIL SEND MESSAGE
-              interaction.reply({
-              content: MESSAGE_PREFIX + "\n\nNous avons envoyer un email à " + email_address + " contenant un code de vérification ! \nVérifie le code en envoyant /code [LeCode]\n\n `ex: /code Ad6r4`",
-              ephemeral: true
-            }))
-            .catch(reason => console.log(reason))
+        })
+        const EmbedEmailSent = {
+          color: 0x93C47D,  
+          author: {
+            name: interaction.guild.name,
+          },
+          
+          description: `<@${interaction.member.id}>\nNous avons envoyer un e-mail à ${email_address} contenant le code ce vérification.\nUtilise la commande /code [le CODE] pour valider ! \n\n\`ex : /code 7a4Ec\``,
+          image: {
+            url: 'https://i.ibb.co/yBdkBPt/Likable-Palatable-Flyingfish-max-1mb.gif',
+          },
+          timestamp: new Date(),
+        }
+        interaction.reply({ embeds: [EmbedEmailSent],ephemeral: true})
       } else {
         // IF EMAIL DOES NOT MATCH REGEX SEND MSG_INVALID_EMAIL
-        interaction.reply({
-          content: MESSAGE_PREFIX +"\n\n"+CONFIG.MSG_INVALID_EMAIL,
-          ephemeral: true
-        })
+        const EmbedError = {
+          color: 0xCC0000,  
+          author: {
+            name: interaction.guild.name,
+          },
+          
+          description: `<@${interaction.member.id}>\nTu ne peux verifier que ton e-mail étudiant !\n\n\`ex: PRENOM.NOM@etu.u-bordeaux.fr\``,
+          image: {
+            url: 'https://i.ibb.co/sm3TN5t/ralph-the-simpsons.gif',
+          },
+          timestamp: new Date(),
+        }
+        interaction.reply({ embeds: [EmbedError],ephemeral: true})
       }
     }))
   }
@@ -126,20 +142,39 @@ client.on('interactionCreate', async interaction => {
             let role = interaction.guild.roles.cache.find(role => role.name === CONFIG.ROLE_NAME)
             interaction.member.roles.add(role)
             // REPLY WITH MSG_VERIFIED
-            interaction.reply({
-              content: "Bravo "+ MESSAGE_PREFIX+"!"+ CONFIG.MSG_VERIFIED,
-              ephemeral: true 
-            })
+            const EmbedVerified = {
+              color: 0x93C47D,  
+              author: {
+                name: interaction.guild.name,
+              },
+              
+              description: `Bravo <@${interaction.member.id}> !\nTu est maintenant vérifié ! `,
+              image: {
+                url: 'https://i.ibb.co/0mhh4zB/4ToY.gif',
+              },
+              timestamp: new Date(),
+            }
+            interaction.reply({ embeds: [EmbedVerified],ephemeral: true})
             // CLEAR TEMP VALUES ON DB
             code_discord_temp.clear(interaction.member.id)
             code_email_temp.clear(interaction.member.id)
+            console.log(`Verified : ${interaction.member.id} - ${new Date()}`)
 
           } else {
             // REPLY WITH MSG_INVALID_CODE
-            interaction.reply({
-              content: CONFIG.MSG_INVALID_CODE,
-              ephemeral: true
-            })
+            const EmbedWrong = {
+              color: 0xCC0000,  
+              author: {
+                name: interaction.guild.name,
+              },
+              
+              description: `<@${interaction.member.id}>\nMauvais code :/`,
+              image: {
+                url: 'https://i.ibb.co/sm3TN5t/ralph-the-simpsons.gif',
+              },
+              timestamp: new Date(),
+            }
+            interaction.reply({ embeds: [EmbedWrong],ephemeral: true})
           }
         })
         .catch(reason => console.log(reason))
@@ -153,14 +188,29 @@ client.on('messageCreate', message => {
   }
   // JOIN MSG
   if (message.channel.id === CONFIG.WELCOME_CHANNEL_ID) {
-    MESSAGE_PREFIX ="<@"+message.author.id+">"
     if (message.type === 'GUILD_MEMBER_JOIN') {
-      message.channel
-        .send(MESSAGE_PREFIX + CONFIG.MSG_JOIN)
-        .catch(reason => console.log(reason))
+      const EmbedJoin = {
+        color: 0x0099ff,  
+        author: {
+          name: message.guild.name,
+        },
+        
+        description: `Hola <@${message.member.id}> !\nBienvenue sur LE serveur des L1 de Bordeaux, tu es la ${client.guilds.cache.get(CONFIG.GUILD_ID).memberCount}ieme personne à nous rejoindre.`,
+        fields: [
+          {
+            name: 'Pour acceder aux salons :',
+            value: `Nous avons besoin de vérifier ton adresse e-mail etudiante, pour cela envois /verif [ton Email].\n\n\`ex: /verif bart.simpson@etu.u-bordeaux.fr\`\n\n\n Si tu as besoin d'aide :\n<#${966616866275614770}>`,
+          }
+        ],
+        image: {
+          url: 'https://i.ibb.co/SKprctj/rafa-los-simpson.gif',
+        },
+        timestamp: new Date(),
+      }
+      message.channel.send({ embeds: [EmbedJoin]})
     }
+    message.delete()
   }
 })
-
 // FUNCTION TO GENERAGE THE CODE
 makeid = length => [...Array(length)].map(() => ALPHANUM.charAt(Math.floor(Math.random() * ALPHANUM.length))).join('')
