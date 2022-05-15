@@ -30,6 +30,8 @@
         "MSG_JOIN"               : "\n\nBienvenue sur le serveur !\nAfin de te donner accès au serveur nous avons besoin de vérifier ton email etudiant !\n\nPour cela envoi /verif [tonEmailUBordeaux]\n`ex: /verif NOM.PRENOM@etu.u-Bordeaux.fr`",
         "MSG_VERIFIED"           : "\n\n Tu es maintenant vérifié !\nGrâce à cela tu peux avoir accès aux channels du serveur."
     }
+# What did i use ?
+   Javascript, Discord.js, Keyv
 # Demo
    It works using / commands on discord.<br/> 
    #1 On the welcome channel people are asked to register using /verif command followed by their @ student<br/>
